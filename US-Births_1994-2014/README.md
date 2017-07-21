@@ -2,12 +2,11 @@
 
 This file will be my first data analysis practice using data of the US births from 1994 to 2014. The data can me found [here](https://github.com/fivethirtyeight/data/tree/master/births).
 
-I would love to accept pointers from others to improve the analysis and make the code more efficient. If you would like to make any comments then please feel free to email me at rachelfu63@gmail.com.
-
-It will have several files.
-- Show the births change every year, and highlight the year that most bobies are born
-- Show the births of every month, and highlight the months that most bobies are born
-- Show the number of bobies of each zodiacs
+It will answer the following questions:
+* During these 20 years, is there a year that has significant more new births than the other?
+* Within a year, which month has the most new babies?
+* Within a week, what day has the most new babies?
+* I am interested in the 12 zodiacs, so which zodiac has the most people for the past 20 years.
 
 Here are some interesting facts I found:
 - Most babies are born between 2006 and 2007 before the financial crisis. There might be some relationshi between high birth rates and good economy condition, which could be analyzed using data related to economy condition.
