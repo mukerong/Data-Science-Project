@@ -122,7 +122,7 @@ def audit_street_type(street_types, street_name):
 
     Return
     ---
-    the street type dictionary
+    the street_type dictionary
     '''
     match = street_type_re.search(street_name)
     if match:
