@@ -111,7 +111,7 @@ expected = ["Street", "Avenue", "Boulevard", "Drive", "Court", "Place",
 
 def audit_street_type(street_types, street_name):
     '''
-    this function will pretty print the street type
+    This function find the street_name that doesn't match the expected list
 
     Parameters
     ---
@@ -122,19 +122,18 @@ def audit_street_type(street_types, street_name):
 
     Return
     ---
-    the street_type dictionary
+    None
     '''
     match = street_type_re.search(street_name)
     if match:
         street_type = match.group(0)
         if street_type not in expected:
             street_types[street_type].add(street_name)
-    return street_types
 
 
 def audit(filename):
     '''
-    this function will read a file and print the street types
+    This function will read a file and print the street types
 
     Parameters
     ---
@@ -142,7 +141,7 @@ def audit(filename):
 
     Return
     ---
-    None
+    street_types dictionary
     '''
     street_types = defaultdict(set)
 
@@ -151,9 +150,60 @@ def audit(filename):
             for tag in elem.iter("tag"):
                 if tag.attrib['k'] == 'addr:street':
                     audit_street_type(street_types, tag.attrib['v'])
-    pprint.pprint(dict(street_types))
+    return street_types
 
-# write the sample file into a SQL database
+
+# update the name based on mapping to the correct format
+mapping = {"St": "Street",
+           "St.": "Street",
+           "Ave": 'Avenue',
+           'Rd.': 'Road',
+           'Dr': 'Drive',
+           'E': 'East',
+           'Highway': 'Highway'
+           }
+
+
+def update_name(name, mapping):
+    '''
+    This function will update the name based on the given mapping
+
+    Parameters:
+    ---
+    name: the unexpected street name found in the file
+    mapping: the mapping for updating the name
+
+    Return:
+    the updated name
+    '''
+    update_name = name.split(' ')[-1]
+    if update_name in mapping:
+        new_name = mapping[update_name]
+
+        name = name.replace(update_name, new_name)
+
+    return name
+
+
+def update_file(filename):
+    '''
+    This function will bring audit() and update_name() functions together to
+    update the street names to make them consistenct
+
+    Parameters
+    ---
+    filename: the .xml or .osm file that needs to be updated
+
+    Return
+    ---
+    the updated file
+    '''
+    street_types = audit(filename)
+    for street_type, ways in street_types.items():
+        for name in ways:
+            name = update_name(name, mapping)
+
+# write the sample file into a csv
 
 # query this dataset through SQL query
 
