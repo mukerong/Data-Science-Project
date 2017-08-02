@@ -109,7 +109,41 @@ expected = ["Street", "Avenue", "Boulevard", "Drive", "Court", "Place",
             "Square", "Lane", "Road", "Trail", "Parkway", "Commons"]
 
 
+def audit_street_type(street_types, street_name):
+    '''
+    this function will pretty print the street type
+
+    Parameters
+    ---
+    street_types: a dictionary
+        it is a dictionary that contains the unique key of street types
+    street_name: strings
+        the street name found in .xml or .osm file
+
+    Return
+    ---
+    the street type dictionary
+    '''
+    match = street_type_re.search(street_name)
+    if match:
+        street_type = match.group(0)
+        if street_type not in expected:
+            street_types[street_type].add(street_name)
+    return street_types
+
+
 def audit(filename):
+    '''
+    this function will read a file and print the street types
+
+    Parameters
+    ---
+    filename: .xml or .osm file
+
+    Return
+    ---
+    None
+    '''
     street_types = defaultdict(set)
 
     for event, elem in ET.iterparse(filename, events=("start",)):
@@ -117,21 +151,8 @@ def audit(filename):
             for tag in elem.iter("tag"):
                 if tag.attrib['k'] == 'addr:street':
                     audit_street_type(street_types, tag.attrib['v'])
-    return street_types
-
-
-def audit_street_type(street_types, street_name):
-    '''
-    this function will return
-    '''
-    match = street_type_re.search(street_name)
-    if match:
-        street_type = match.group(0)
-        if street_type not in expected:
-            street_types[street_type].add(street_name)
     pprint.pprint(dict(street_types))
 
-    
 # write the sample file into a SQL database
 
 # query this dataset through SQL query
