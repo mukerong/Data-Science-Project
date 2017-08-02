@@ -154,14 +154,14 @@ def audit(filename):
 
 
 # update the name based on mapping to the correct format
-mapping = {"St": "Street",
-           "St.": "Street",
-           "Ave": 'Avenue',
-           'Rd.': 'Road',
-           'Dr': 'Drive',
-           'E': 'East',
-           'Highway': 'Highway'
-           }
+mapping_st = {"St": "Street",
+              "St.": "Street",
+              "Ave": 'Avenue',
+              'Rd.': 'Road',
+              'Dr': 'Drive',
+              'E': 'East',
+              'Highway': 'Highway'
+              }
 
 
 def update_name(name, mapping):
@@ -185,25 +185,113 @@ def update_name(name, mapping):
     return name
 
 
-def update_file(filename):
-    '''
-    This function will bring audit() and update_name() functions together to
-    update the street names to make them consistenct
-
-    Parameters
-    ---
-    filename: the .xml or .osm file that needs to be updated
-
-    Return
-    ---
-    the updated file
-    '''
-    street_types = audit(filename)
-    for street_type, ways in street_types.items():
-        for name in ways:
-            name = update_name(name, mapping)
-
 # write the sample file into a csv
+node_fields = ['id', 'lat', 'lon', 'user', 'uid',
+               'version', 'changeset', 'timestamp']
+node_tags_fields = ['id', 'key', 'value', 'type']
+way_fields = ['id', 'user', 'uid', 'version', 'changeset', 'timestamp']
+way_tags_fields = ['id', 'key', 'value', 'type']
+way_nodes_fields = ['id', 'node_id', 'position']
+
+
+def shape_element(element, node_attr_fields=node_fields,
+                  way_attr_fields=way_fields,
+                  problem_chars=problemchars, default_tag_type='regular'):
+    """Clean and shape node or way XML element to Python dict"""
+
+    node_attribs = {}
+    way_attribs = {}
+    way_nodes = []
+    tags = []  # Handle secondary tags the same way for both node and way elements
+    # YOUR CODE HERE
+    if element.tag == 'node':
+        for item in NODE_FIELDS:
+            node_attribs[item] = element.get(item)
+        for child in element:
+            tag_dict = {}
+            colon = child.get('k').find(':')
+            if (child.tag == 'tag'):
+                tag_dict['id'] = element.get('id')
+                tag_dict['value'] = child.get('v')
+                if (colon != -1):
+                    type_value = child.get('k')[:colon]
+                    key_value = child.get('k')[colon+1:]
+                    tag_dict['type'] = type_value
+                    tag_dict['key'] = key_value
+                else:
+                    tag_dict['key'] = child.get('k')
+                    tag_dict['type'] = 'regular'
+                tags.append(tag_dict)
+        return {'node': node_attribs, 'node_tags': tags}
+    elif element.tag == 'way':
+        for item in WAY_FIELDS:
+            way_attribs[item] = element.get(item)
+
+        n = 0
+        for child in element:
+            if child.tag == 'nd':
+                nd_dict = {}
+                nd_dict['id'] = element.get('id')
+                nd_dict['node_id'] = child.get('ref')
+                nd_dict['position'] = n
+                n += 1
+                way_nodes.append(nd_dict)
+
+            if (child.tag == 'tag'):
+                way_tag_dict = {}
+                colon = child.get('k').find(':')
+                way_tag_dict['id'] = element.get('id')
+                way_tag_dict['value'] = child.get('v')
+                if (colon != -1):
+                    type_value = child.get('k')[:colon]
+                    key_value = child.get('k')[colon+1:]
+                    way_tag_dict['type'] = type_value
+                    way_tag_dict['key'] = key_value
+                else:
+                    way_tag_dict['key'] = child.get('k')
+                    way_tag_dict['type'] = 'regular'
+                tags.append(way_tag_dict)
+
+        return {'way': way_attribs, 'way_nodes': way_nodes, 'way_tags': tags}
+
+
+def process_map(file_in, validate):
+    """Iteratively process each XML element and write to csv(s)"""
+
+    with codecs.open(NODES_PATH, 'w') as nodes_file, \
+        codecs.open(NODE_TAGS_PATH, 'w') as nodes_tags_file, \
+        codecs.open(WAYS_PATH, 'w') as ways_file, \
+        codecs.open(WAY_NODES_PATH, 'w') as way_nodes_file, \
+        codecs.open(WAY_TAGS_PATH, 'w') as way_tags_file:
+
+        nodes_writer = UnicodeDictWriter(nodes_file, NODE_FIELDS)
+        node_tags_writer = UnicodeDictWriter(nodes_tags_file, NODE_TAGS_FIELDS)
+        ways_writer = UnicodeDictWriter(ways_file, WAY_FIELDS)
+        way_nodes_writer = UnicodeDictWriter(way_nodes_file, WAY_NODES_FIELDS)
+        way_tags_writer = UnicodeDictWriter(way_tags_file, WAY_TAGS_FIELDS)
+
+        nodes_writer.writeheader()
+        node_tags_writer.writeheader()
+        ways_writer.writeheader()
+        way_nodes_writer.writeheader()
+        way_tags_writer.writeheader()
+
+        validator = cerberus.Validator()
+
+        for element in get_element(file_in, tags=('node', 'way')):
+            el = shape_element(element)
+            if el:
+                if validate is True:
+                    validate_element(el, validator)
+
+                if element.tag == 'node':
+                    nodes_writer.writerow(el['node'])
+                    node_tags_writer.writerows(el['node_tags'])
+                elif element.tag == 'way':
+                    ways_writer.writerow(el['way'])
+                    way_nodes_writer.writerows(el['way_nodes'])
+                    way_tags_writer.writerows(el['way_tags'])
+
 
 # query this dataset through SQL query
 
