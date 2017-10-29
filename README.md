@@ -9,7 +9,7 @@ Being able to tell a story using data is more critical than ever. This repositor
 ## Getting Started
 
 ### Overview
-This program will include various data science projects. 
+This program will include various data science projects. I also did several other projects through the Udacity Nanodegree programs. These projects can be found in [Udacity-DAND](https://github.com/rachelfu/Udacity-DAND) and [Udacity-MLND](https://github.com/rachelfu/Udacity-MLND).
 
 I will also make some notes, which will all be saved in [Toolkits](https://github.com/rachelfu/Toolkit).
 
