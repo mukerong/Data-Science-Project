@@ -10,7 +10,7 @@ from collections import defaultdict
 # set-up the file and tag I am going to use
 osm_file = 'chicago_illinois.osm'
 sample_file = 'sample_chicago.osm'
-tag = ['node', 'way', 'relation']
+tags = ['node', 'way', 'relation']
 
 
 # find the elements from the original .osm file
